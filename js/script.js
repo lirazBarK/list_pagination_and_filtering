@@ -1,50 +1,123 @@
-/******************************************
-Treehouse Techdegree:
-FSJS project 2 - List Filter and Pagination
-******************************************/
-   
-// Study guide for this project - https://drive.google.com/file/d/1OD1diUsTMdpfMDv677TfL1xO2CEkykSz/view?usp=sharing
+/*
+This project is showing a list of students, 10 student per page,
+and it also allows you to search in real time for a student in the list.
+ */
 
+document.addEventListener('DOMContentLoaded', () => {
+const ul = document.querySelector('.student-list');
+const li = document.querySelector('.student-item cf');
+const mainPage = document.querySelector('.page');
+const pageHeader = document.querySelector('.page-header');
+const paginationDiv = document.createElement('div');
+const newUl = document.createElement('ul');
+const list = ul.children;
+const searchDiv = document.createElement('div');
+const searchInput = document.createElement('input');
+const searchButton = document.createElement('button');
 
-/*** 
-   Add your global variables that store the DOM elements you will 
-   need to reference and/or manipulate. 
-   
-   But be mindful of which variables should be global and which 
-   should be locally scoped to one of the two main functions you're 
-   going to create. A good general rule of thumb is if the variable 
-   will only be used inside of a function, then it can be locally 
-   scoped to that function.
-***/
+searchDiv.className = 'student-search';
+searchInput.type = 'text';
+searchInput.placeholder = 'Search for students...';
+searchButton.textContent = 'Search';
+pageHeader.prepend(searchDiv);
+searchDiv.appendChild(searchInput);
+searchDiv.appendChild(searchButton);
 
+paginationDiv.className = 'pagination';
+paginationDiv.appendChild(newUl);
+mainPage.appendChild(paginationDiv);
 
+const noMatch = document.createElement('span');
+noMatch.textContent = 'No matches were found';
+mainPage.appendChild(noMatch);
+noMatch.style.display = 'none';
 
+//When this function is called it shows the list of 10 students based on the number of the page your on
+const showPage = (list, page) => {
+  const skip = 10 * (page-1);
+  const limit = skip + 9;
+  for (let i = 0; i < list.length; i++ ){
+    if( i <= limit && i >= skip) {
+      list[i].style.display = '';
+    }else {
+      list[i].style.display = 'none';
+    }
+    }
+  };
 
-/*** 
-   Create the `showPage` function to hide all of the items in the 
-   list except for the ten you want to show.
+/*This function creates the page number li based on the length of the students list, and appends it to
+  the ul in the paginationDiv*/
+const createPageLinks = list => {
+  while(newUl.firstElementChild){
+  newUl.removeChild(newUl.firstElementChild)
+}
+  const pages = Math.ceil(list.length / 10);
+  for(let i = 1; i <= pages; i++) {
+    let page = i;
+    let newLi = document.createElement('li');
+    let newAnchor = document.createElement('a');
+    newAnchor.textContent = page;
+    if(page === 1) {
+    newAnchor.className = "active";
+  }else{
+    newAnchor.className = "";
+  }
+    newLi.appendChild(newAnchor);
+    newUl.appendChild(newLi)
+  };
 
-   Pro Tips: 
-     - Keep in mind that with a list of 54 students, the last page 
-       will only display four.
-     - Remember that the first student has an index of 0.
-     - Remember that a function `parameter` goes in the parens when 
-       you initially define the function, and it acts as a variable 
-       or a placeholder to represent the actual function `argument` 
-       that will be passed into the parens later when you call or 
-       "invoke" the function 
-***/
+}
 
+ createPageLinks(list);
+ showPage(list, 1);
 
+ /*When this function is called it filters and show only the students that includes the text
+ that entered in the 'searchInput' input */
+const eventFunc = () => {
+  const value = searchInput.value.trim();
+  if(value) {
+  const filteredList = Array.from(list).filter((li) => {
+      const studentName =li.querySelector('h3').textContent;
+      const studentEmail = li.querySelector('span.email').textContent;
+      if(studentName.includes(value)) {
+      return studentName.includes(value);
+    }else {
+      return studentEmail.includes(value)
+    }
+    });
+    if(filteredList.length > 0) {
+    noMatch.style.display = 'none'
+    showPage(list, -1);
+    showPage(filteredList, 1);
+    createPageLinks(filteredList);
+  }else{
+    showPage(list, -1);
+    createPageLinks(filteredList);
+    noMatch.style.display = 'block';
+  }
+  }else {
+    showPage(list, 1);
+    createPageLinks(list);
+  }
+}
 
+//Show the students in the list based on the page number and add css to that anchor attribute
+paginationDiv.addEventListener('click', (e) => {
+  const a = e.target;
+  const li = newUl.getElementsByTagName("li")
+  for(let i = 0; i < li.length; i++) {
+    li[i].childNodes[0].className ="";
+  }
+  a.className = 'active';
+ showPage(list, a.textContent);
+});
 
-/*** 
-   Create the `appendPageLinks function` to generate, append, and add 
-   functionality to the pagination buttons.
-***/
+searchInput.addEventListener('keyup' , () => {
+  eventFunc();
+})
 
+searchButton.addEventListener('click' , () => {
+  eventFunc();
+})
 
-
-
-
-// Remember to delete the comments that came with this file, and replace them with your own code comments.
+});
